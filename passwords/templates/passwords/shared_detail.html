@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Shared Password - {{ password.name }}{% endblock %}
+
+{% block content %}
+<div class="password-container">
+    <div id="password-content">
+        <div class="password-card">
+            <div class="card-header">
+                <h1>{{ password.name }}</h1>
+                <div class="expiration-badge">
+                    <span id="countdown" class="countdown"></span>
+                </div>
+            </div>
+
+            <div class="password-details">
+                <div class="detail-item">
+                    <label>Username</label>
+                    <div class="detail-value">
+                        <span id="username">{{ password.username }}</span>
+                        <button class="copy-btn" onclick="copyToClipboard('username')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <label>Password</label>
+                    <div class="detail-value">
+                        <span id="password" class="password-field">{{ password.password_value }}</span>
+                        <button class="copy-btn" onclick="copyToClipboard('password')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="toggle-btn" onclick="togglePassword()">
+                            <i id="eye-icon" class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {% if password.website_url %}
+                <div class="detail-item">
+                    <label>Website</label>
+                    <div class="detail-value">
+                        <a href="{{ password.website_url }}" target="_blank" class="website-link">
+                            {{ password.website_url }}
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if password.notes %}
+                <div class="detail-item notes">
+                    <label>Notes</label>
+                    <div class="detail-value">
+                        <p>{{ password.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="expiration-info">
+                <i class="fas fa-clock"></i>
+                <span>This link expires at {{ expires_at }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="expired-message" class="expired-message" style="display: none;">
+        <div class="expired-card">
+            <i class="fas fa-exclamation-circle"></i>
+            <h2>This link has expired</h2>
+            <p>The shared password is no longer available.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .password-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 20px;
+        font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .password-card {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 550px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .password-card:hover {
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #4a6cfd, #734bff);
+        color: white;
+        padding: 25px 30px;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .expiration-badge {
+        background-color: rgba(255, 255, 255, 0.15);
+        padding: 8px 12px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        backdrop-filter: blur(5px);
+    }
+
+    .password-details {
+        padding: 25px 30px;
+    }
+
+    .detail-item {
+        margin-bottom: 20px;
+    }
+
+    .detail-item label {
+        display: block;
+        color: #667085;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        display: flex;
+        align-items: center;
+        background-color: #f9fafb;
+        border: 1px solid #eaecf0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        position: relative;
+    }
+
+    .detail-value span {
+        flex-grow: 1;
+        word-break: break-all;
+    }
+
+    .password-field {
+        font-family: monospace;
+        letter-spacing: 1px;
+    }
+
+    .copy-btn,
+    .toggle-btn {
+        background: none;
+        border: none;
+        color: #667085;
+        cursor: pointer;
+        padding: 5px;
+        margin-left: 5px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover,
+    .toggle-btn:hover {
+        color: #4a6cfd;
+        background-color: rgba(74, 108, 253, 0.1);
+    }
+
+    .website-link {
+        color: #4a6cfd;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .website-link i {
+        margin-left: 10px;
+        font-size: 0.8rem;
+    }
+
+    .website-link:hover {
+        text-decoration: underline;
+    }
+
+    .notes p {
+        margin: 0;
+        white-space: pre-wrap;
+    }
+
+    .expiration-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 30px;
+        background-color: #fffaeb;
+        color: #926c15;
+        font-size: 0.9rem;
+    }
+
+    /* Make countdown text red when close to expiration */
+    .countdown.warning {
+        color: #e11d48;
+    }
+
+    /* Expired message styles */
+    .expired-message {
+        width: 100%;
+        max-width: 550px;
+        text-align: center;
+    }
+
+    .expired-card {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 40px 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .expired-card i {
+        font-size: 4rem;
+        color: #f43f5e;
+        margin-bottom: 20px;
+    }
+
+    .expired-card h2 {
+        margin: 0 0 10px 0;
+        color: #1f2937;
+        font-size: 1.5rem;
+    }
+
+    .expired-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 1rem;
+    }
+</style>
+
+<script>
+    // Add Font Awesome for icons
+    if (!document.getElementById('font-awesome')) {
+        const link = document.createElement('link');
+        link.id = 'font-awesome';
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+        document.head.appendChild(link);
+    }
+
+    // Get the expiration time from Django context
+    const expiresAt = new Date("{{ expires_at|date:'Y-m-d H:i:s' }}").getTime();
+    const countdownEl = document.getElementById("countdown");
+    const passwordContent = document.getElementById("password-content");
+    const expiredMessage = document.getElementById("expired-message");
+
+    // Check if link is already expired on page load
+    const checkInitialExpiration = () => {
+        const now = new Date().getTime();
+        if (now >= expiresAt) {
+            // Show expired message and hide password content
+            passwordContent.style.display = "none";
+            expiredMessage.style.display = "block";
+        }
+    };
+
+    // Run initial expiration check
+    checkInitialExpiration();
+
+    // Password visibility toggle
+    function togglePassword() {
+        const passwordField = document.getElementById("password");
+        const eyeIcon = document.getElementById("eye-icon");
+
+        if (passwordField.style.textSecurity === "disc" || !passwordField.style.textSecurity) {
+            passwordField.style.textSecurity = "none";
+            passwordField.style.webkitTextSecurity = "none";
+            eyeIcon.className = "fas fa-eye";
+        } else {
+            passwordField.style.textSecurity = "disc";
+            passwordField.style.webkitTextSecurity = "disc";
+            eyeIcon.className = "fas fa-eye-slash";
+        }
+    }
+
+    // Apply initial password masking
+    document.getElementById("password").style.textSecurity = "disc";
+    document.getElementById("password").style.webkitTextSecurity = "disc";
+
+    // Copy to clipboard function
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const copyBtn = document.querySelector(`#${elementId}`).nextElementSibling;
+
+            // Change icon to checkmark briefly
+            const originalIcon = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check" style="color: #10b981;"></i>';
+
+            // Revert back after 1.5 seconds
+            setTimeout(() => {
+                copyBtn.innerHTML = originalIcon;
+            }, 1500);
+        });
+    }
+
+    // Countdown timer
+    const updateCountdown = () => {
+        const now = new Date().getTime();
+        const timeLeft = expiresAt - now;
+
+        if (timeLeft <= 0) {
+            // Show expired message and hide password content
+            passwordContent.style.display = "none";
+            expiredMessage.style.display = "block";
+            return;
+        }
+
+        const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+        const seconds = Math.floor((timeLeft / 1000) % 60);
+
+        // Add leading zeros
+        const formattedHours = String(hours).padStart(2, '0');
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+
+        countdownEl.innerHTML = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+
+        // Add warning class if less than 1 hour remains
+        if (timeLeft < 60 * 60 * 1000) {
+            countdownEl.classList.add("warning");
+        }
+    };
+
+    updateCountdown(); // Initial call
+    setInterval(updateCountdown, 1000); // Update every second
+</script>
+{% endblock %}

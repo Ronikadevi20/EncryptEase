@@ -1,0 +1,16 @@
+<!-- documents/templates/emails/document_expiry_alert.html -->
+<html>
+
+<body style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    <div style="max-width: 600px; margin: auto; padding: 30px;">
+        <h2 style="color: #007bff;">Document Expiry Alert ⏳</h2>
+        <p>Hi {{ user.username }},</p>
+        <p>Your document <strong>{{ document.title }}</strong> expires soon.</p>
+        <div style="padding: 15px; margin: 20px 0;">
+            <p>Expiry Date: {{ expiry_date }}</p>
+            <p>View document: <a href="{{ document_url }}">{{ document.file_name }}</a></p>
+        </div>
+    </div>
+</body>
+
+</html>

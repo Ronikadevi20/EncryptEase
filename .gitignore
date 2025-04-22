@@ -1,0 +1,64 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Django-specific
+*.sqlite3
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+
+# Env / virtualenv
+.env
+venv/
+ENV/
+env/
+.venv/
+
+# IDEs & editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Node stuff (if any frontend is mixed in)
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Migrations (optional, uncomment if you don’t want them in version control)
+# **/migrations/
+# !**/migrations/__init__.py
+
+# Static/media files (optional if you're using collectstatic)
+staticfiles/
+media/
+
+# Test coverage
+htmlcov/
+coverage.xml
+*.cover
+.cache
+nosetests.xml
+test-results.xml
+junit-*.xml
+
+# Pytest
+.pytest_cache/
+
+# MyPy & Pylint
+.mypy_cache/
+.dmypy.json
+.pyre/
+pylint-report.txt
+env/
+.vscode/
