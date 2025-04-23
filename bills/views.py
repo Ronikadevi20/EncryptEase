@@ -14,14 +14,16 @@ class BillViewSet(viewsets.ModelViewSet):
 
     # ... rest of your view code
     def get_queryset(self):
-        # Show only non-deleted bills by default
-        queryset = Bill.objects.filter(user=self.request.user, is_deleted=False)
+        queryset = Bill.objects.filter(user=self.request.user)
         
-        # Option to view deleted bills if needed
-        show_deleted = self.request.query_params.get('show_deleted', '').lower() == 'true'
-        if show_deleted:
-            queryset = Bill.objects.filter(user=self.request.user)
-            
+        # If not viewing a detail or special action, exclude deleted
+        if self.action not in ['restore', 'soft_delete', 'retrieve']:
+            queryset = queryset.filter(is_deleted=False)
+        
+        # Optional: allow viewing deleted with query param
+        if self.request.query_params.get('show_deleted', '').lower() == 'true':
+            return queryset
+
         return queryset
 
     def perform_create(self, serializer):

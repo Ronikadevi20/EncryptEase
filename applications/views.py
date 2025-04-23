@@ -1,60 +1,35 @@
 from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from .serializers import FollowUpDraftSerializer
 from .utils import extract_score
-from .models import JobApplication, ApplicationAttachment
 from .serializers import JobApplicationSerializer, ApplicationAttachmentSerializer
-from rest_framework import status
-from django.conf import settings
 import openai
-from openai import OpenAI
 import requests
-from rest_framework.decorators import action
-from rest_framework.parsers import MultiPartParser
-from rest_framework.response import Response
-from rest_framework import status
-from django.conf import settings
-from rest_framework import status
 import traceback
 from .models import JobApplication, ApplicationAttachment
 from .models import InterviewPrepNote
 from .serializers import InterviewPrepNoteSerializer
 from .models import Resume, CoverLetter
 from .serializers import ResumeSerializer, CoverLetterSerializer
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from openai import OpenAI  # or your preferred OpenRouter client
 import asyncio
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status, permissions
-from glassdoor_scraper.insights_scraper import scrape_glassdoor_insights
 from .models import CompanyInsight
 from .serializers import CompanyInsightSerializer  
 from .models import FollowUpDraft
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework import status, viewsets
 from django.shortcuts import get_object_or_404
 from .models import InterviewSession
 from .serializers import InterviewMessageSerializer,InterviewSessionSerializer 
 from .models import InterviewMessage, InterviewPrepNote, InterviewPrepDraft
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
-from django.conf import settings
-from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.parsers import MultiPartParser
 from django.conf import settings
-import requests
 
 
 
@@ -66,15 +41,11 @@ client = OpenAI(
 
 class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return InterviewSession.objects.filter(user=self.request.user).order_by('-created_at')
-
     queryset = JobApplication.objects.all()
     serializer_class = JobApplicationSerializer
     def get_queryset(self):
-        # Only return non-deleted applications for the current user
         return JobApplication.objects.filter(user=self.request.user, is_deleted=False)
+
 
     def perform_destroy(self, instance):
         # Soft delete instead of actual delete
@@ -685,17 +656,16 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         # Add additional save logic here if needed
         return Response({'status': 'Session saved'})
 
-
-   
     @action(detail=False, methods=['post'], url_path='audio-transcribe', parser_classes=[MultiPartParser])
     def audio_transcribe(self, request):
         audio_file = request.FILES.get('audio')
         if not audio_file:
-            return Response({'error': 'No audio file provided'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'No audio file provided'}, status=400)
 
         try:
+            import openai
             openai.api_key = settings.OPENROUTER_API_KEY
             result = openai.Audio.transcribe("whisper-1", audio_file)
-            return Response({'transcript': result.get("text", ""), 'success': True})
+            return Response({'transcript': result.get("text", "")})
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)}, status=500)

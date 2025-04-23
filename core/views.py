@@ -89,8 +89,8 @@ class RegisterView(generics.CreateAPIView):
         <html>
           <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; color: #333;">
             <div style="max-width: 600px; margin: auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 30px;">
-              <h2 style="color: #007bff;">Welcome to EncryptEasy, {user.username} 👋</h2>
-              <p>Thank you for registering with <strong>EncryptEasy</strong>.</p>
+              <h2 style="color: #007bff;">Welcome to EncryptEase, {user.username} 👋</h2>
+              <p>Thank you for registering with <strong>EncryptEase</strong>.</p>
               <p>To complete your registration, please verify your email address by clicking the link below:</p>
             <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
                 <h3 style="font-weight: bold;">🔐 OTP Code: {otp_code}</h3>
@@ -103,7 +103,7 @@ class RegisterView(generics.CreateAPIView):
               <p>This link is valid for a limited time. Please do not share it with anyone.</p>
               <p>If you did not initiate this registration, you can safely ignore this email.</p>
               <hr style="margin: 30px 0;">
-              <p style="font-size: 14px; color: #777;">Best regards,<br>The EncryptEasy Team</p>
+              <p style="font-size: 14px; color: #777;">Best regards,<br>The EncryptEase Team</p>
             </div>
           </body>
         </html>
@@ -111,7 +111,7 @@ class RegisterView(generics.CreateAPIView):
 
         # Send verification email
         send_mail(
-            subject='[EncryptEasy] Successful Registration – Verify Your Email',
+            subject='[EncryptEase] Successful Registration – Verify Your Email',
             message=f"Hi {user.username},\n\nPlease verify your email by clicking the link: {verification_link}",  # Fallback plain text
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
@@ -195,12 +195,12 @@ class LoginView(APIView):
                     <p style="margin-bottom: 20px;">Hi {user.username},</p>
                     <p style="margin-bottom: 20px;">Someone has logged in with a decoy password.</p>
                     <p style="margin-bottom: 20px;">Please change your password to secure your account.</p>
-                    <p style="margin-bottom: 20px;">Best regards,<br>The EncryptEasy Team</p>
+                    <p style="margin-bottom: 20px;">Best regards,<br>The EncryptEase Team</p>
                   </body>
                 </html>
                 """
                 send_mail(
-                    subject='[EncryptEasy] Decoy Login Detected',
+                    subject='[EncryptEase] Decoy Login Detected',
                     message=f"Hi {user.username},\n\nYou have logged in with a decoy password. Please change your password to secure your account.",  # Fallback plain text
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
@@ -243,7 +243,7 @@ class LoginView(APIView):
             <html>
               <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; color: #333;">
                 <div style="max-width: 600px; margin: auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 30px;">
-                  <h2 style="color: #007bff;">Login Verification for EncryptEasy</h2>
+                  <h2 style="color: #007bff;">Login Verification for EncryptEase</h2>
                   <p>Hi {user.username},</p>
                   <p>Here is your login verification OTP code:</p>
                   <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
@@ -252,14 +252,14 @@ class LoginView(APIView):
                   <p>This code is valid for a limited time. Please do not share it with anyone.</p>
                   <p>If you didn't request this login, please secure your account immediately.</p>
                   <hr style="margin: 30px 0;">
-                  <p style="font-size: 14px; color: #777;">Stay secure,<br>The EncryptEasy Team</p>
+                  <p style="font-size: 14px; color: #777;">Stay secure,<br>The EncryptEase Team</p>
                 </div>
               </body>
             </html>
             """
 
             send_mail(
-                subject='[EncryptEasy] Login Verification OTP',
+                subject='[EncryptEase] Login Verification OTP',
                 message=f"Hi {user.username},\n\nHere is your login verification OTP code: {otp_code}",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],
@@ -396,14 +396,14 @@ class RequestPasswordResetView(APIView):
             otp_code = profile.generate_otp_code()
             
             # Create a professional email message
-            subject = '[EncryptEasy] Password Reset OTP'
+            subject = '[EncryptEase] Password Reset OTP'
             message = format_html("""
                 <h2 style="color: #333;">Password Reset Request</h2>
                 <p>Hi {username},</p>
                 <p>We received a request to reset your password. Here is your OTP code:</p>
                 <h3 style="color: #007BFF;">{otp_code}</h3>
                 <p>If you didn't request a password reset, please ignore this email.</p>
-                <p>Thank you,<br>Your EncryptEasy Team</p>
+                <p>Thank you,<br>Your EncryptEase Team</p>
                 <footer style="font-size: 0.9em; color: #888;">
                     <p>This email was sent to {email}. If you have any questions, please contact support.</p>
                 </footer>

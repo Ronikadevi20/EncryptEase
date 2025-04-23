@@ -34,7 +34,7 @@ class AuthenticationTests(TestCase):
         
         # Check that an email was sent
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, '[EncryptEasy] Successful Registration – Verify Your Email')
+        self.assertEqual(mail.outbox[0].subject, '[EncryptEase] Successful Registration – Verify Your Email')
         
         # Check the user is created but not verified
         user = User.objects.first()
@@ -80,7 +80,7 @@ class AuthenticationTests(TestCase):
         
         # Check decoy login email was sent
         self.assertEqual(len(mail.outbox), 2)
-        self.assertEqual(mail.outbox[1].subject, '[EncryptEasy] Decoy Login Detected')
+        self.assertEqual(mail.outbox[1].subject, '[EncryptEase] Decoy Login Detected')
     
     def test_login_without_otp(self):
         """Test login with decoy password"""
@@ -102,7 +102,7 @@ class AuthenticationTests(TestCase):
         
         # Check decoy login email was sent
         self.assertEqual(len(mail.outbox), 2)
-        self.assertEqual(mail.outbox[1].subject, '[EncryptEasy] Decoy Login Detected')
+        self.assertEqual(mail.outbox[1].subject, '[EncryptEase] Decoy Login Detected')
     
     def test_password_update(self):
         """Test login before email verification"""

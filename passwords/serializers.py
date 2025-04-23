@@ -177,27 +177,31 @@ class PasswordSerializer(serializers.ModelSerializer):
             return 'OTHER'
         
         # Load a pre-trained zero-shot classifier
-        classifier = pipeline(
-            "zero-shot-classification",
-            model="facebook/bart-large-mnli"
-        )
-        
-        candidate_labels = [
-            'social media', 'email', 'financial services', 
-            'work related', 'entertainment', 'online shopping'
-        ]
-        
-        result = classifier(text, candidate_labels)
-        top_label = result['labels'][0].upper().replace(' ', '_')
-        
-        # Map to existing categories
-        label_mapping = {
-            'SOCIAL_MEDIA': 'SOCIAL',
-            'EMAIL': 'EMAIL',
-            'FINANCIAL_SERVICES': 'FINANCE',
-            'WORK_RELATED': 'WORK',
-            'ENTERTAINMENT': 'ENTERTAINMENT',
-            'ONLINE_SHOPPING': 'SHOPPING'
-        }
-        
-        return label_mapping.get(top_label, 'OTHER')
+        try:
+        # Load a pre-trained zero-shot classifier
+            classifier = pipeline(
+                "zero-shot-classification",
+                model="facebook/bart-large-mnli"
+            )
+            
+            candidate_labels = [
+                'social media', 'email', 'financial services', 
+                'work related', 'entertainment', 'online shopping'
+            ]
+            
+            result = classifier(text, candidate_labels)
+            top_label = result['labels'][0].upper().replace(' ', '_')
+            
+            # Map to existing categories
+            label_mapping = {
+                'SOCIAL_MEDIA': 'SOCIAL',
+                'EMAIL': 'EMAIL',
+                'FINANCIAL_SERVICES': 'FINANCE',
+                'WORK_RELATED': 'WORK',
+                'ENTERTAINMENT': 'ENTERTAINMENT',
+                'ONLINE_SHOPPING': 'SHOPPING'
+            }
+            return label_mapping.get(top_label, 'OTHER')
+
+        except Exception as e:
+            return 'OTHER'
