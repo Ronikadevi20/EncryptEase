@@ -64,12 +64,12 @@ class JobApplicationSerializer(serializers.ModelSerializer):
         status = data.get('status', self.instance.status if self.instance else None)
         deadline_date = data.get('deadline_date')
 
-        if status in ['interviewing', 'assesment'] and not deadline_date:
+        if status in ['interviewing', 'assessment'] and not deadline_date:
             raise serializers.ValidationError({
                 'deadline_date': 'This field is required when status is "Interviewing" or "Assessment".'
             })
 
-        if deadline_date and status not in ['interviewing', 'assesment']:
+        if deadline_date and status not in ['interviewing', 'assessment']:
             raise serializers.ValidationError({
                 'deadline_date': 'Deadline should only be set if the status is "Interviewing" or "Assessment".'
             })

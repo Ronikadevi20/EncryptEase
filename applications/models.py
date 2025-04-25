@@ -16,7 +16,7 @@ class JobApplication(models.Model):
     STATUS_CHOICES = (
         ('applied', 'Applied'),
         ('interviewing', 'Interviewing'),
-        ('assesment', 'assesment'),
+        ('assessment', 'assessment'),
         ('rejected', 'Rejected'),
         ('offered', 'Offered'),
         ('accepted', 'Accepted'),

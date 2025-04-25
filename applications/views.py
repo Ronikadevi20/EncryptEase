@@ -156,7 +156,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         jd = application.job_description or "No job description provided."
         notes = application.notes or ""
 
-        if app_status  == "assesment":
+        if app_status  == "assessment":
             prompt = (
                 f"You are a helpful assistant that helps job applicants prepare for assessments.\n"
                 f"Job Title: {role}\n"
