@@ -32,12 +32,15 @@ from rest_framework.parsers import MultiPartParser
 from django.conf import settings
 
 
+import os
+from openai import OpenAI
 
-
-client = OpenAI(
-    api_key=settings.OPENROUTER_API_KEY,
-    base_url="https://openrouter.ai/api/v1"
-)
+def generate_something():
+    client = OpenAI(
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+        base_url="https://openrouter.ai/api/v1"
+    )
+    # now use `client.chat.completions.create(...)` safely
 
 class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

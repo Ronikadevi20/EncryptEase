@@ -18,7 +18,7 @@ import openai
 
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'replace-this-for-local-testing')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
