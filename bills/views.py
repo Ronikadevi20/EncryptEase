@@ -14,17 +14,21 @@ class BillViewSet(viewsets.ModelViewSet):
 
     # ... rest of your view code
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Bill.objects.none()
+
         queryset = Bill.objects.filter(user=self.request.user)
-        
+
         # If not viewing a detail or special action, exclude deleted
         if self.action not in ['restore', 'soft_delete', 'retrieve']:
             queryset = queryset.filter(is_deleted=False)
-        
+
         # Optional: allow viewing deleted with query param
         if self.request.query_params.get('show_deleted', '').lower() == 'true':
             return queryset
 
         return queryset
+
 
     def perform_create(self, serializer):
         print(serializer)

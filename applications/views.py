@@ -14,7 +14,6 @@ from .serializers import InterviewPrepNoteSerializer
 from .models import Resume, CoverLetter
 from .serializers import ResumeSerializer, CoverLetterSerializer
 from rest_framework.permissions import IsAuthenticated
-from openai import OpenAI  # or your preferred OpenRouter client
 import asyncio
 from rest_framework.views import APIView
 from rest_framework import status, permissions
@@ -22,8 +21,7 @@ from .models import CompanyInsight
 from .serializers import CompanyInsightSerializer  
 from .models import FollowUpDraft
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
-from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets4
 from .models import InterviewSession
 from .serializers import InterviewMessageSerializer,InterviewSessionSerializer 
 from .models import InterviewMessage, InterviewPrepNote, InterviewPrepDraft
@@ -47,6 +45,8 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
     queryset = JobApplication.objects.all()
     serializer_class = JobApplicationSerializer
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return JobApplication.objects.none()
         return JobApplication.objects.filter(user=self.request.user, is_deleted=False)
 
 

@@ -22,6 +22,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
     ordering = ['-upload_date']
     
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Document.objects.none()
+
         queryset = Document.objects.filter(user=self.request.user)
         
         expiry_status = self.request.query_params.get('expiry_status', None)
@@ -40,6 +43,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_deleted=False)
         
         return queryset
+
     
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:

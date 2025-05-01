@@ -16,7 +16,8 @@ class PasswordViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        # Only return non-deleted passwords for the current user
+        if getattr(self, 'swagger_fake_view', False):
+            return Password.objects.none()
         return Password.objects.filter(user=self.request.user, is_deleted=False)
     
     def perform_destroy(self, instance):
