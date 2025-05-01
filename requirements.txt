@@ -43,5 +43,5 @@ transformers==4.37.2
 gunicorn
 whitenoise
 dj-database-url
-psycopg2-binaryopenai==1.74.0
+psycopg2-binary
 openai==1.14.2
