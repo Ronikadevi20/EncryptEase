@@ -21,7 +21,7 @@ from .models import CompanyInsight
 from .serializers import CompanyInsightSerializer  
 from .models import FollowUpDraft
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets4
+from rest_framework import status, viewsets
 from .models import InterviewSession
 from .serializers import InterviewMessageSerializer,InterviewSessionSerializer 
 from .models import InterviewMessage, InterviewPrepNote, InterviewPrepDraft
