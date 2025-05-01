@@ -170,9 +170,9 @@ SIMPLE_JWT = {
 }
 # In your settings.py
 # OR for more security:
-CORS_ALLOWED_ORIGINS = [
-    'https://frontendproject-sage.vercel.app',
-]
+# CORS_ALLOWED_ORIGINS = [
+#     'https://frontendproject-sage.vercel.app',
+# ]
 
 LOGGING = {
     'version': 1,
@@ -208,6 +208,14 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'https://frontendproject-sage.vercel.app',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://frontendproject-sage.vercel.app',
 ]
 # Email configuration (for password reset, etc.)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
