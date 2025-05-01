@@ -56,13 +56,6 @@ class ApplicationAttachment(models.Model):
     
     def __str__(self):
         return self.name
-class FollowUpDraft(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    application = models.OneToOneField(JobApplication, on_delete=models.CASCADE, related_name='followup_draft')
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
     
 class InterviewPrepDraft(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -127,12 +120,13 @@ class CompanyInsight(models.Model):
         return f"{self.company} - {self.role_title}"
 class FollowUpDraft(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    application = models.ForeignKey(JobApplication, on_delete=models.CASCADE)
+    application = models.OneToOneField(JobApplication, on_delete=models.CASCADE, related_name='followup_draft')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     email_follow_up_sent = models.BooleanField(default=False)
     email_sent_at = models.DateTimeField(null=True, blank=True)  
+
 # class InterviewPracticeSession(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)
 #     application = models.ForeignKey(JobApplication, on_delete=models.CASCADE)
