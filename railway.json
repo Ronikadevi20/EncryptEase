@@ -1,0 +1,16 @@
+{
+    "build": {
+      "command": "pip install -r requirements.txt"
+    },
+    "deploy": {
+      "command": "gunicorn jobapps_manager.wsgi:application"
+    },
+    "start": {
+      "command": "gunicorn jobapps_manager.wsgi:application"
+    },
+    "plugins": [],
+    "scripts": {
+      "migrate": "python manage.py migrate"
+    }
+  }
+  
