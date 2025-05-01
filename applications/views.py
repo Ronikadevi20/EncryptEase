@@ -33,13 +33,6 @@ from django.conf import settings
 import os
 from openai import OpenAI
 
-def generate_something():
-    client = OpenAI(
-        api_key=os.getenv("OPENROUTER_API_KEY"),
-        base_url="https://openrouter.ai/api/v1"
-    )
-    # now use `client.chat.completions.create(...)` safely
-
 class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = JobApplication.objects.all()
@@ -49,6 +42,11 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             return JobApplication.objects.none()
         return JobApplication.objects.filter(user=self.request.user, is_deleted=False)
 
+    def get_openrouter_client(self):
+        return OpenAI(
+            api_key=os.getenv("OPENROUTER_API_KEY"),
+            base_url="https://openrouter.ai/api/v1"
+        )
 
     def perform_destroy(self, instance):
         # Soft delete instead of actual delete
@@ -96,19 +94,21 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         )
 
         try:
-            response = client.chat.completions.create(model="mistralai/mistral-7b-instruct",  # supported on OpenRouter
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that writes follow-up job application emails."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7)
+            client = self.get_openrouter_client()  # ✅ call helper
+            response = client.chat.completions.create(
+                model="mistralai/mistral-7b-instruct",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that writes follow-up job application emails."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7
+            )
             message = response.choices[0].message.content
             return Response({'email': message.strip()})
         except Exception as e:
             print("Follow-up generation error:", e)
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-
     @action(detail=True, methods=['post'], url_path='mark-followup-done')
     def mark_followup_done(self, request, pk=None):
         application = self.get_object()
@@ -183,6 +183,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             )
 
         try:
+            client = self.get_openrouter_client()  # ✅ safely get client
             response = client.chat.completions.create(
                 model="mistralai/mistral-7b-instruct",
                 messages=[
@@ -193,7 +194,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             )
             content = response.choices[0].message.content
 
-            # ✅ Save or update the draft
             InterviewPrepDraft.objects.update_or_create(
                 application=application,
                 user=user,
@@ -202,8 +202,8 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
             return Response({'prep_content': content.strip(), 'status': app_status})
         except Exception as e:
-            traceback.print_exc()  
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            traceback.print_exc()
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['post'], url_path='mark-prepared')
     def mark_prepared(self, request, pk=None):
@@ -275,6 +275,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         """
 
         try:
+            client = self.get_openrouter_client()  # ✅ FIXED: use correct client
             response = client.chat.completions.create(
                 model="mistralai/mistral-7b-instruct",
                 messages=[{"role": "user", "content": prompt}],
@@ -309,6 +310,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         )
 
         try:
+            client = self.get_openrouter_client()  # ✅ Use helper method to get the client
             response = client.chat.completions.create(
                 model="mistralai/mistral-7b-instruct",
                 messages=[{"role": "user", "content": prompt}],
@@ -338,6 +340,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         )
 
         try:
+            client = self.get_openrouter_client()  # ✅ safely access the OpenRouter client
             response = client.chat.completions.create(
                 model="mistralai/mistral-7b-instruct",
                 messages=[{"role": "user", "content": prompt}],
@@ -357,8 +360,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
     @action(detail=True, methods=['post'], url_path='regenerate-cover-letter')
     def regenerate_cover_letter(self, request, pk=None):
         try:
@@ -374,6 +375,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         )
 
         try:
+            client = self.get_openrouter_client()  # ✅ get client here
             response = client.chat.completions.create(
                 model="mistralai/mistral-7b-instruct",
                 messages=[{"role": "user", "content": prompt}],
