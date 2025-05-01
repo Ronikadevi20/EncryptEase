@@ -38,7 +38,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'encryptease-backend-production.up.railway.app').split(',')
 
-# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'encryptease-backend.onrender.com').split(',')
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -88,10 +87,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'jobapps_manager.wsgi.application'
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -114,7 +117,6 @@ DATABASES = {
 }
 
 
-ALLOWED_HOSTS = ['*'] 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -159,14 +161,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # REST Framework settings
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-}
 
 # JWT Settings
 SIMPLE_JWT = {
@@ -177,7 +171,7 @@ SIMPLE_JWT = {
 # OR for more security:
 CORS_ALLOWED_ORIGINS = [
     os.getenv('FRONTEND_URL', 'http://localhost:3000'),
-    'https://your-vercel-app.vercel.app',
+    'https://frontendproject-sage.vercel.app',
 ]
 
 LOGGING = {
@@ -224,8 +218,7 @@ EMAIL_USE_TLS = True                          # Or EMAIL_USE_SSL = True (not bot
 EMAIL_HOST_USER = 'encryptease@gmail.com' 
 
 DEFAULT_FROM_EMAIL = 'EncryptEase <EncryptEase@gmail.com>'
-SERVER_EMAIL = 'jimlestonosoi42@gmail.com'
-EMAIL_SUBJECT_PREFIX = '[JobApps Manager] '   # Optional prefix for system emails
+SERVER_EMAIL = 'ronikadevi20@gmail.com'
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@encryptease.com')
@@ -247,3 +240,4 @@ SWAGGER_SETTINGS = {
 }
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_HSTS_PRELOAD = True
