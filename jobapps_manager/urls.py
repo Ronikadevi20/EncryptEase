@@ -5,6 +5,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf.urls.static import static
 from django.conf import settings
+from django.http import JsonResponse
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -20,6 +21,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+      path('', lambda request: JsonResponse({'status': 'EncryptEase backend is running'})),
       path('admin/', admin.site.urls),
       path('api/auth/', include('core.urls')),
       path('api/applications/', include('applications.urls')),
