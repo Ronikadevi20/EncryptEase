@@ -107,7 +107,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             return Response({'email': message.strip()})
         except Exception as e:
             print("Follow-up generation error:", e)
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
     @action(detail=True, methods=['post'], url_path='mark-followup-done')
     def mark_followup_done(self, request, pk=None):
@@ -203,7 +203,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             return Response({'prep_content': content.strip(), 'status': app_status})
         except Exception as e:
             traceback.print_exc()
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['post'], url_path='mark-prepared')
     def mark_prepared(self, request, pk=None):
@@ -292,7 +292,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
     @action(detail=True, methods=['post'], url_path='regenerate-resume')
