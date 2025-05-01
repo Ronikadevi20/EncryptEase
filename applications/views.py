@@ -5,7 +5,6 @@ from django.utils import timezone
 from .serializers import FollowUpDraftSerializer
 from .utils import extract_score
 from .serializers import JobApplicationSerializer, ApplicationAttachmentSerializer
-import openai
 import requests
 import traceback
 from .models import JobApplication, ApplicationAttachment
@@ -28,8 +27,6 @@ from .models import InterviewMessage, InterviewPrepNote, InterviewPrepDraft
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from django.conf import settings
-
-
 import os
 from openai import OpenAI
 
@@ -41,13 +38,14 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         if getattr(self, 'swagger_fake_view', False):
             return JobApplication.objects.none()
         return JobApplication.objects.filter(user=self.request.user, is_deleted=False)
-
     def get_openrouter_client(self):
         return OpenAI(
             api_key=os.getenv("OPENROUTER_API_KEY"),
             base_url="https://openrouter.ai/api/v1"
         )
 
+    def get_whisper_client(self):
+        return OpenAI(api_key=settings.OPENAI_API_KEY)
     def perform_destroy(self, instance):
         # Soft delete instead of actual delete
         instance.is_deleted = True
@@ -578,11 +576,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No audio file provided'}, status=400)
 
         try:
-            import openai
-            from openai import OpenAI
-            import io
-
-            client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            client = self.get_whisper_client()
 
             # ✅ Convert InMemoryUploadedFile to a stream with a name
             audio_bytes = audio_file.read()
