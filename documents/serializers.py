@@ -45,7 +45,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 class DocumentUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = ('title', 'description', 'expiry_date')
+        fields = ('title', 'description', 'expiry_date', 'file') 
     
     def validate_expiry_date(self, value):
         if value and value < timezone.now():
@@ -57,3 +57,19 @@ class DocumentUpdateSerializer(serializers.ModelSerializer):
             self.instance.last_notification_sent = None
             
         return value
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.expiry_date = validated_data.get('expiry_date', instance.expiry_date)
+
+        if 'file' in validated_data:
+            # ✅ Delete old file
+            if instance.file:
+                instance.file.delete(save=False)
+
+            # ✅ Set new file and update metadata
+            instance.file = validated_data['file']
+            instance._set_file_metadata()
+
+        instance.save()
+        return instance

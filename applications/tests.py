@@ -55,38 +55,6 @@ class ApplicationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["job_title"], "Updated")
 
-    # def test_follow_up_draft_creation_and_fetch(self):
-    #     job = JobApplication.objects.create(user=self.user, job_title="FollowUp", company="B")
-    #     draft_data = {
-    #         "application": job.id,
-    #         "content": "Hi, just following up on my application!"
-    #     }
-    #     response = self.client.post("/api/applications/followup-drafts/", draft_data)
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     self.assertEqual(FollowUpDraft.objects.count(), 1)
-
-    #     # Ensure it reflects on job object
-    #     job_detail = self.client.get(f"/api/applications/{job.id}/")
-    #     self.assertTrue(job_detail.data.get("has_follow_up_draft"))
-
-    # def test_mark_follow_up_email_sent(self):
-    #     job = JobApplication.objects.create(user=self.user, job_title="Reminder", company="C")
-    #     draft = FollowUpDraft.objects.create(user=self.user, application=job, content="Please update")
-        
-    #     # Mark as sent (simulate PATCH)
-    #     response = self.client.patch(f"/api/applications/followup-drafts/{draft.id}/", {
-    #         "email_follow_up_sent": True
-    #     })
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     draft.refresh_from_db()
-    #     self.assertTrue(draft.email_follow_up_sent)
-    #     self.assertIsNotNone(draft.email_sent_at)
-
-    # def test_access_control_on_job(self):
-    #     job = JobApplication.objects.create(user=self.user, job_title="Secret", company="NoAccess")
-    #     self.client.force_authenticate(user=self.other_user)
-    #     response = self.client.get(f"/api/applications/{job.id}/")
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     def test_create_job_missing_required_fields(self):
         response = self.client.post("/api/applications/", {
             "company": "No Job Title"
@@ -146,17 +114,7 @@ class ApplicationTests(APITestCase):
             res = self.client.post("/api/applications/generate-resume/", data)
             self.assertEqual(res.status_code, status.HTTP_201_CREATED)
             self.assertEqual(Resume.objects.count(), 1)
-
-    # def test_update_resume_fields(self):
-    #     resume = Resume.objects.create(user=self.user, title="Old", job_title="Dev", job_description="Old desc")
-    #     res = self.client.patch(f"/api/applications/generate-resumes/{resume.id}/", {
-    #         "title": "Updated Resume",
-    #         "skills": "Python, Django"
-    #     })
-    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
-    #     resume.refresh_from_db()
-    #     self.assertEqual(resume.skills, "Python, Django")
-
+            
     def test_create_cover_letter(self):
         data = {
             "title": "AI Role Cover",
@@ -173,22 +131,3 @@ class ApplicationTests(APITestCase):
         self.client.force_authenticate(user=self.other_user)
         res = self.client.get(f"/api/applications/generate-resumes/{resume.id}/")
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
-
-    # def test_create_interview_prep_draft(self):
-    #     job = JobApplication.objects.create(user=self.user, job_title="Interview Prep", company="Zeta")
-    #     data = {
-    #         "application": job.id,
-    #         "content": "Why do you want to work here?"
-    #     }
-    #     res = self.client.post("/api/applications/interview-drafts/", data)
-    #     self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-
-    # def test_update_interview_prep_note(self):
-    #     job = JobApplication.objects.create(user=self.user, job_title="NoteApp", company="X")
-    #     note = InterviewPrepNote.objects.create(user=self.user, application=job, content="Prep note")
-    #     res = self.client.patch(f"/api/applications/interview-notes/{note.id}/", {
-    #         "content": "Updated note content"
-    #     })
-    #     self.assertEqual(res.status_code, status.HTTP_200_OK)
-    #     note.refresh_from_db()
-    #     self.assertEqual(note.content, "Updated note content")

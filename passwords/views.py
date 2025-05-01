@@ -39,8 +39,8 @@ class PasswordViewSet(viewsets.ModelViewSet):
             user_tz = pytz.timezone(tzname)
         except Exception:
             user_tz = pytz.UTC
-        created_at = timezone.now()
-        expires_at = created_at.astimezone(user_tz) + timedelta(hours=hours)
+        expires_at = timezone.now() + timedelta(hours=hours)
+
         shared = SharedPassword.objects.create(
             original_password=password,
             name=password.name,

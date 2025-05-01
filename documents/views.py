@@ -63,7 +63,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
             )
         document.restore()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
     @action(detail=True, methods=['get'])
     def download(self, request, pk=None):
         document = self.get_object()
@@ -87,21 +87,6 @@ class DocumentViewSet(viewsets.ModelViewSet):
             expiry_date__range=(timezone.now(), timezone.now() + timezone.timedelta(days=7))
             .count())
         
-        return Response({
-            'total_documents': total_documents,
-            'expired_documents': expired_documents,
-            'expiring_soon': expiring_soon,
-        })
-    @action(detail=False, methods=['get'])
-    def stats(self, request):
-        user_docs = Document.objects.filter(user=request.user, is_deleted=False)
-        
-        total_documents = user_docs.count()
-        expired_documents = user_docs.filter(expiry_date__lt=timezone.now()).count()
-        expiring_soon = user_docs.filter(
-            expiry_date__range=(timezone.now(), timezone.now() + timezone.timedelta(days=7))
-        ).count()
-
         return Response({
             'total_documents': total_documents,
             'expired_documents': expired_documents,

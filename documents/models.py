@@ -133,3 +133,12 @@ class Document(models.Model):
     def download_url(self):
         """Generate download URL (to be used with your URL routing)"""
         return f"/api/documents/{self.id}/download/"
+    def replace_file(self, new_file):
+        """
+        Safely replace the document file with proper cleanup
+        """
+        if self.file:
+            self.file.delete(save=False)
+        self.file = new_file
+        self._set_file_metadata()
+        self.save()

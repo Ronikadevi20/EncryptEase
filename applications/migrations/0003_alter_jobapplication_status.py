@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='jobapplication',
             name='status',
-            field=models.CharField(choices=[('applied', 'Applied'), ('interviewing', 'Interviewing'), ('assesment', 'assesment'), ('rejected', 'Rejected'), ('offered', 'Offered'), ('accepted', 'Accepted'), ('declined', 'Declined')], default='applied', max_length=20),
+            field=models.CharField(choices=[('applied', 'Applied'), ('interviewing', 'Interviewing'), ('assessment', 'assessment'), ('rejected', 'Rejected'), ('offered', 'Offered'), ('accepted', 'Accepted'), ('declined', 'Declined')], default='applied', max_length=20),
         ),
     ]

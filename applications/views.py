@@ -83,10 +83,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         application = self.get_object()
         user_input = request.data.get('user_input', '')
 
-        # Set OpenRouter key and endpoint
-        # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url="https://openrouter.ai/api/v1")'
-        # openai.api_base = "https://openrouter.ai/api/v1"
-
         prompt = (
             f"Write a short and polite follow-up email for a job application.\n"
             f"Job Title: {application.job_title}\n"
@@ -485,91 +481,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         application.save()
         return Response({'message': 'Email marked as sent.'}, status=status.HTTP_200_OK)
     
-    # @action(detail=True, methods=['post'], url_path='start-interview-session')
-    # def start_interview_session(self, request, pk=None):
-    #     app = self.get_object()
-    #     interview_type = request.data.get("interview_type")
-    #     session = InterviewPracticeSession.objects.create(
-    #         user=request.user,
-    #         application=app,
-    #         interview_type=interview_type,
-    #     )
-    #     return Response({'session_id': session.id})
-    
-    # @action(detail=True, methods=['post'], url_path='answer-question')
-    # def answer_question(self, request, pk=None):
-    #     session_id = request.data.get("session_id")
-    #     question = request.data.get("question")
-    #     answer = request.data.get("answer")
-        
-
-    #     session = get_object_or_404(InterviewPracticeSession, id=session_id, user=request.user)
-
-    #     # Send to AI for evaluation
-    #     prompt = f"Interview question: {question}\nCandidate's answer: {answer}\n\nGive a score out of 10 and constructive feedback."
-
-    #     response = client.chat.completions.create(
-    #         model="mistralai/mistral-7b-instruct",
-    #         messages=[
-    #             {"role": "system", "content": "You're an interview coach. Rate and give feedback."},
-    #             {"role": "user", "content": prompt}
-    #         ]
-    #     )
-
-    #     ai_reply = response.choices[0].message.content
-    #     score = extract_score(ai_reply)  # You can write a regex function for this later
-
-    #     qa = InterviewQuestionAnswer.objects.create(
-    #         session=session,
-    #         question=question,
-    #         user_answer=answer,
-    #         ai_feedback=ai_reply,
-    #         rating=score,
-    #     )
-
-    #     return Response(InterviewQuestionAnswerSerializer(qa).data)
-    # @action(detail=True, methods=['post'], url_path='chat-interview-bot')
-    # def chat_interview_bot(self, request, pk=None):
-    #     session_id = request.data.get("session_id")
-    #     message = request.data.get("message")
-
-    #     session = get_object_or_404(InterviewPracticeSession, id=session_id, user=request.user)
-
-    #     # Save user's message
-    #     InterviewChatMessage.objects.create(session=session, sender='user', text=message)
-
-    #     # Build prompt from history
-    #     history = InterviewChatMessage.objects.filter(session=session).order_by('created_at')
-    #     prompt = "You're a professional interviewer. Respond with feedback and ask next questions.\n\n"
-    #     for m in history:
-    #         prompt += f"{'Candidate' if m.sender == 'user' else 'Interviewer'}: {m.text}\n"
-    #     prompt += "Interviewer:"
-
-    #     # AI response
-    #     ai_response = client.chat.completions.create(
-    #         model="mistralai/mistral-7b-instruct",
-    #         messages=[{"role": "user", "content": prompt}]
-    #     )
-    #     reply = ai_response.choices[0].message.content.strip()
-
-    #     # Save AI reply
-    #     InterviewChatMessage.objects.create(session=session, sender='ai', text=reply)
-
-    #     return Response({"reply": reply})
-    # @action(detail=True, methods=['get'], url_path='sessions')
-    # def get_sessions_for_application(self, request, pk=None):
-    #     app = self.get_object()
-    #     sessions = InterviewPracticeSession.objects.filter(application=app, user=request.user)
-    #     data = [
-    #         {
-    #             'id': s.id,
-    #             'interview_type': s.interview_type,
-    #             'started_at': s.started_at,
-    #             'title': f"{app.job_title} – {s.interview_type.capitalize()}",
-    #         }
-    #         for s in sessions
-    #     ]
-    #     return Response(data)
     @action(detail=False, methods=['post'], url_path='start-session')
     def start_session(self, request):
         user = request.user
@@ -629,7 +540,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         response = client.chat.completions.create(
         model="mistralai/mistral-7b-instruct",  # or gpt-4, etc.
         messages=[
-            {"role": "system", "content": "You're an AI interviewer. Ask the candidate questions based on their responses, and provide helpful feedback."},
+            {"role": "system", "content": "You're an AI interviewer. Ask the candidate one question at a time based on their responses"},
             {"role": "user", "content": message}
         ],
         temperature=0.7,
@@ -655,7 +566,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         # Add additional save logic here if needed
         return Response({'status': 'Session saved'})
-
+    
     @action(detail=False, methods=['post'], url_path='audio-transcribe', parser_classes=[MultiPartParser])
     def audio_transcribe(self, request):
         audio_file = request.FILES.get('audio')
@@ -664,8 +575,21 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         try:
             import openai
-            openai.api_key = settings.OPENROUTER_API_KEY
-            result = openai.Audio.transcribe("whisper-1", audio_file)
-            return Response({'transcript': result.get("text", "")})
+            from openai import OpenAI
+            import io
+
+            client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+            # ✅ Convert InMemoryUploadedFile to a stream with a name
+            audio_bytes = audio_file.read()
+            audio_stream = io.BytesIO(audio_bytes)
+            audio_stream.name = 'recording.webm'  # Required!
+
+            result = client.audio.transcriptions.create(
+                file=audio_stream,
+                model="whisper-1"
+            )
+            return Response({'transcript': result.text})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
