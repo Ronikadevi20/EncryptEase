@@ -59,13 +59,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware', 
 ]
 
 ROOT_URLCONF = 'jobapps_manager.urls'
@@ -170,7 +171,6 @@ SIMPLE_JWT = {
 # In your settings.py
 # OR for more security:
 CORS_ALLOWED_ORIGINS = [
-    os.getenv('FRONTEND_URL', 'http://localhost:3000'),
     'https://frontendproject-sage.vercel.app',
 ]
 
