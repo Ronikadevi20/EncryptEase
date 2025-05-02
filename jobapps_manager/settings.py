@@ -70,7 +70,15 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'jobapps_manager.urls'
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -113,7 +121,10 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL')
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,  # Keep DB connections open for 10 mins
+        conn_health_checks=True,  # Recommended for reliable connections
+        ssl_require=True  # Enforce SSL (recommended for Railway)
     )
 }
 

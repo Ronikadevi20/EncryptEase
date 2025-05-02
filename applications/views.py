@@ -29,11 +29,20 @@ from rest_framework.parsers import MultiPartParser
 from django.conf import settings
 import os
 from openai import OpenAI
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+from django.utils.decorators import method_decorator
 
 class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = JobApplication.objects.all()
     serializer_class = JobApplicationSerializer
+
+    # 🚨 CACHE ALL GET REQUESTS FOR 2 MINUTES (Good default)
+    @method_decorator(cache_page(60*2))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return JobApplication.objects.none()
@@ -43,6 +52,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             api_key=os.getenv("OPENROUTER_API_KEY"),
             base_url="https://openrouter.ai/api/v1"
         )
+        
 
     def get_whisper_client(self):
         return OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -51,6 +61,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         instance.is_deleted = True
         instance.deleted_at = timezone.now()
         instance.save()
+        cache.clear()  # ✅ CLEAR CACHE HERE
 
     @action(detail=True, methods=['post'])
     def upload_attachment(self, request, pk=None):
@@ -59,6 +70,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         if file_serializer.is_valid():
             file_serializer.save(application=application)
+            cache.clear() 
             return Response(file_serializer.data, status=status.HTTP_201_CREATED)
         return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -72,6 +84,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             application = self.get_object()
             attachment = ApplicationAttachment.objects.get(id=attachment_id, application=application)
             attachment.delete()
+            cache.clear()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ApplicationAttachment.DoesNotExist:
             return Response({"error": "Attachment not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -112,6 +125,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         application = self.get_object()
         application.follow_up_marked_done_at = timezone.now()  # CORRECT field
         application.save()
+        cache.clear()
         return Response({'message': 'Follow-up marked as done.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='followup-draft')
@@ -136,7 +150,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             user=request.user,
             defaults={'content': content}
         )
-
+        cache.clear()
         return Response({
             "message": "Draft saved successfully.",
             "content": draft.content
@@ -209,6 +223,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         app.is_prepared = True
         app.follow_up_marked_done_at = timezone.now()
         app.save()
+        cache.clear()
         return Response({'message': 'Marked as prepared'})
     
     @action(detail=True, methods=['get'], url_path='interview-prep-draft')
@@ -411,6 +426,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             resume = Resume.objects.get(id=pk, user=request.user)
             resume.generated_content = request.data.get('generated_content', resume.generated_content)
             resume.save()
+            cache.clear()
             return Response({'success': True})
         except Resume.DoesNotExist:
             return Response({'error': 'Not found'}, status=404)
@@ -419,6 +435,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         try:
             resume = Resume.objects.get(id=pk, user=request.user)
             resume.delete()
+            cache.clear()
             return Response({'success': True})
         except Resume.DoesNotExist:
             return Response({'error': 'Resume not found'}, status=404)
@@ -428,6 +445,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         try:
             letter = CoverLetter.objects.get(id=pk, user=request.user)
             letter.delete()
+            cache.clear()
             return Response({'success': True})
         except CoverLetter.DoesNotExist:
             return Response({'error': 'Cover letter not found'}, status=404)
@@ -437,6 +455,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             cover = CoverLetter.objects.get(id=pk, user=request.user)
             cover.generated_content = request.data.get('generated_content', cover.generated_content)
             cover.save()
+            cache.clear()
             return Response({'success': True})
         except CoverLetter.DoesNotExist:
             return Response({'error': 'Not found'}, status=404)
@@ -481,6 +500,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         application.email_sent_at = timezone.now()
         application.email_follow_up_sent = True 
         application.save()
+        cache.clear()
         return Response({'message': 'Email marked as sent.'}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], url_path='start-session')
@@ -498,7 +518,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             interview_type=interview_type,
             title=f"{interview_type.capitalize()} Interview - {timezone.now().strftime('%b %d, %Y')}"
         )
-
+        cache.clear()
         return Response({'session_id': session.id}, status=201)
 
     @action(detail=False, methods=['get'], url_path='get-sessions/(?P<job_id>[^/.]+)')
