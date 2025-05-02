@@ -559,6 +559,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         )
 
         # Generate AI response (replace with actual OpenRouter logic)
+        client = self.get_openrouter_client()
         response = client.chat.completions.create(
         model="mistralai/mistral-7b-instruct",  # or gpt-4, etc.
         messages=[
