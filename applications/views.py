@@ -42,7 +42,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
     # 🚨 CACHE ALL GET REQUESTS FOR 2 MINUTES (Good default)
 
     @method_decorator(vary_on_cookie)
-    @method_decorator(cache_page(60*2))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
