@@ -593,37 +593,24 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         return Response({'status': 'Session saved'})
 
 
-    @action(detail=False, methods=['post'], url_path='audio-transcribe')
+    @action(detail=False, methods=['post'], url_path='audio-transcribe', parser_classes=[MultiPartParser])
     def audio_transcribe(self, request):
         audio_file = request.FILES.get('audio')
         if not audio_file:
             return Response({'error': 'No audio file provided'}, status=400)
 
         try:
-            # Guess extension based on MIME type
-            ext = mimetypes.guess_extension(audio_file.content_type) or '.webm'
-            with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as input_file:
-                input_file.write(audio_file.read())
-                input_path = input_file.name
+            client = self.get_whisper_client()
 
-            output_path = input_path.replace(ext, '.wav')
+            # ✅ Convert InMemoryUploadedFile to a stream with a name
+            audio_bytes = audio_file.read()
+            audio_stream = io.BytesIO(audio_bytes)
+            audio_stream.name = 'recording.webm'  # Required!
 
-            # 🔧 Convert to WAV using ffmpeg
-            subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], check=True)
-
-            # 🎙️ Send to Whisper
-            with open(output_path, 'rb') as converted:
-                converted.name = 'recording.wav'
-                result = self.get_whisper_client().audio.transcriptions.create(
-                    file=converted,
-                    model='whisper-1'
-                )
-
+            result = client.audio.transcriptions.create(
+                file=audio_stream,
+                model="whisper-1"
+            )
             return Response({'transcript': result.text})
-
-        except subprocess.CalledProcessError as e:
-            return Response({'error': f'Audio conversion failed: {e}'}, status=500)
-
         except Exception as e:
-            print(f"[Transcribe Error] {e}")
-            return Response({'error': f'Transcription failed: {e}'}, status=500)
+            return Response({'error': str(e)}, status=500)
