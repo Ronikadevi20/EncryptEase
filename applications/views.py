@@ -35,6 +35,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.vary import vary_on_cookie
 import io
 import mimetypes
+import tempfile
+import subprocess
 
 class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -590,36 +592,33 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         # Add additional save logic here if needed
         return Response({'status': 'Session saved'})
 
-    @action(detail=False, methods=['post'], url_path='audio-transcribe', parser_classes=[MultiPartParser])
+    @action(detail=False, methods=['post'], url_path='audio-transcribe')
     def audio_transcribe(self, request):
         audio_file = request.FILES.get('audio')
         if not audio_file:
-            return Response({'error': 'No audio file provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # ✅ Validate file type (basic check)
-        valid_mime_types = ['audio/webm', 'audio/ogg', 'audio/wav', 'audio/mp4']
-        if audio_file.content_type not in valid_mime_types:
-            return Response({'error': f'Unsupported file type: {audio_file.content_type}'}, status=400)
+            return Response({'error': 'No audio file provided'}, status=400)
 
         try:
-            client = self.get_whisper_client()
+            # Save original audio to temp file
+            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as input_file:
+                input_file.write(audio_file.read())
+                input_path = input_file.name
 
-            # Convert to byte stream with name
-            audio_bytes = audio_file.read()
-            audio_stream = io.BytesIO(audio_bytes)
+            # Convert to WAV using ffmpeg
+            output_path = input_path.replace('.mp4', '.wav')
+            subprocess.run(['ffmpeg', '-y', '-i', input_path, output_path], check=True)
 
-            # Whisper uses the file extension to determine format — must match what was uploaded
-            guessed_ext = mimetypes.guess_extension(audio_file.content_type) or '.webm'
-            audio_stream.name = f'recording{guessed_ext}'
-
-            result = client.audio.transcriptions.create(
-                file=audio_stream,
-                model="whisper-1"
-            )
+            # Pass converted file to Whisper
+            with open(output_path, 'rb') as converted:
+                converted.name = 'recording.wav'
+                result = self.get_whisper_client().audio.transcriptions.create(
+                    file=converted,
+                    model='whisper-1'
+                )
 
             return Response({'transcript': result.text})
 
+        except subprocess.CalledProcessError as e:
+            return Response({'error': f'Audio conversion failed: {e}'}, status=500)
         except Exception as e:
-            # Improve error reporting
-            print(f"Whisper transcription error: {e}")
-            return Response({'error': 'Transcription failed. ' + str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': f'Transcription failed: {e}'}, status=500)
