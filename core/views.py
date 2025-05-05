@@ -82,7 +82,8 @@ class RegisterView(generics.CreateAPIView):
         otp_code = profile.generate_otp_code()  # Generate OTP code directly
 
         # Create verification link
-        verification_link = f"http://localhost:8080/verification?email={user.email}&otp_code={otp_code}"
+        verification_link = f"https://frontendproject-sage.vercel.app/verification?email={user.email}&otp_code={otp_code}"
+
 
         # HTML message for registration email
         html_message = f"""
