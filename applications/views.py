@@ -32,6 +32,7 @@ from openai import OpenAI
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
+from django.views.decorators.vary import vary_on_cookie
 
 class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -39,9 +40,12 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
     serializer_class = JobApplicationSerializer
 
     # 🚨 CACHE ALL GET REQUESTS FOR 2 MINUTES (Good default)
+
+    @method_decorator(vary_on_cookie)
     @method_decorator(cache_page(60*2))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
@@ -259,6 +263,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
                 defaults={"content": content}
             )
             return Response({'message': 'Note saved successfully.'})
+
     @action(detail=False, methods=['post'], url_path='generate-resume')
     def generate_resume(self, request):
         user = request.user
@@ -272,23 +277,19 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         prompt = f"""
         Build a professional resume with the following:
-
         Title: {title}
-
         Skills:
         {skills}
-
         Experience:
         {experience}
-
         Education:
         {education}
-
         Format the resume in a clear, professional layout.
         """
 
         try:
-            client = self.get_openrouter_client()  # ✅ FIXED: use correct client
+            resume = Resume.objects.get(id=pk, user=request.user)
+            client = self.get_openrouter_client()
             response = client.chat.completions.create(
                 model="mistralai/mistral-7b-instruct",
                 messages=[{"role": "user", "content": prompt}],
