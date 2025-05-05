@@ -262,7 +262,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
                 defaults={"content": content}
             )
             return Response({'message': 'Note saved successfully.'})
-
     @action(detail=False, methods=['post'], url_path='generate-resume')
     def generate_resume(self, request):
         user = request.user
@@ -287,7 +286,6 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
         """
 
         try:
-            resume = Resume.objects.get(id=pk, user=request.user)
             client = self.get_openrouter_client()
             response = client.chat.completions.create(
                 model="mistralai/mistral-7b-instruct",
@@ -611,4 +609,3 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
             return Response({'transcript': result.text})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
-
