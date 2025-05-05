@@ -33,6 +33,8 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.vary import vary_on_cookie
+import io
+import mimetypes
 
 class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -587,25 +589,37 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
 
         # Add additional save logic here if needed
         return Response({'status': 'Session saved'})
-    
+
     @action(detail=False, methods=['post'], url_path='audio-transcribe', parser_classes=[MultiPartParser])
     def audio_transcribe(self, request):
         audio_file = request.FILES.get('audio')
         if not audio_file:
-            return Response({'error': 'No audio file provided'}, status=400)
+            return Response({'error': 'No audio file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ✅ Validate file type (basic check)
+        valid_mime_types = ['audio/webm', 'audio/ogg', 'audio/wav', 'audio/mp4']
+        if audio_file.content_type not in valid_mime_types:
+            return Response({'error': f'Unsupported file type: {audio_file.content_type}'}, status=400)
 
         try:
             client = self.get_whisper_client()
 
-            # ✅ Convert InMemoryUploadedFile to a stream with a name
+            # Convert to byte stream with name
             audio_bytes = audio_file.read()
             audio_stream = io.BytesIO(audio_bytes)
-            audio_stream.name = 'recording.webm'  # Required!
+
+            # Whisper uses the file extension to determine format — must match what was uploaded
+            guessed_ext = mimetypes.guess_extension(audio_file.content_type) or '.webm'
+            audio_stream.name = f'recording{guessed_ext}'
 
             result = client.audio.transcriptions.create(
                 file=audio_stream,
                 model="whisper-1"
             )
+
             return Response({'transcript': result.text})
+
         except Exception as e:
-            return Response({'error': str(e)}, status=500)
+            # Improve error reporting
+            print(f"Whisper transcription error: {e}")
+            return Response({'error': 'Transcription failed. ' + str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
