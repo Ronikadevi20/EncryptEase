@@ -80,6 +80,10 @@ class RegisterView(generics.CreateAPIView):
         # Generate OTP code
         profile = user.profile
         otp_code = profile.generate_otp_code()  # Generate OTP code directly
+
+        # Create verification link
+        verification_link = f"http://localhost:8080/verification?email={user.email}&otp_code={otp_code}"
+
         # HTML message for registration email
         html_message = f"""
         <html>
@@ -87,10 +91,12 @@ class RegisterView(generics.CreateAPIView):
             <div style="max-width: 600px; margin: auto; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 30px;">
               <h2 style="color: #007bff;">Welcome to EncryptEase, {user.username} 👋</h2>
               <p>Thank you for registering with <strong>EncryptEase</strong>.</p>
-              <p>To complete your registration, please verify your email address by verifying the OTP:</p>
+              <p>To complete your registration, please verify your email address by verifying the OTP</p>
             <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
                 <h3 style="font-weight: bold;">🔐 OTP Code: {otp_code}</h3>
             </div>
+              <div style="background-color: #e9ecef; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
+              </div>
               <p>If you did not initiate this registration, you can safely ignore this email.</p>
               <hr style="margin: 30px 0;">
               <p style="font-size: 14px; color: #777;">Best regards,<br>The EncryptEase Team</p>
@@ -102,7 +108,7 @@ class RegisterView(generics.CreateAPIView):
         # Send verification email
         send_mail(
             subject='[EncryptEase] Successful Registration – Verify Your Email',
-            message=f"Hi {user.username},\n\nPlease verify your email by clicking the link: {verification_link}",  # Fallback plain text
+            message=f"Hi {user.username},\n\nPlease verify your email by verifying the otp",  # Fallback plain text
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             fail_silently=False,
